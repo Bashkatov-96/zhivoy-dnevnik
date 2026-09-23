@@ -59,7 +59,7 @@
           p: "Чат с ботом — это тетрадь: пишешь как есть. Мини-приложение — карта: неделя, летопись, сонник и портрет. Оно открывается кнопкой «Карта» у поля ввода.",
           tags: [["", "Запись одна и та же в чате и в приложении"]],
           screen: app([
-            head("Твоя карта дня", "Личная карта"),
+            head("Обсерватория", "Твоё небо"),
             row("#5B8DEF", '<svg><use href="#emblem"/></svg>', "Личная карта", "Пять зеркал о тебе"),
             row("#F0A93C", "📜", "Летопись мыслей", "Тома по месяцам"),
             row("#A66BFF", "🌙", "Сонник", "Твои ночи"),
@@ -114,7 +114,7 @@
           p: "Когда внутри непонятный ком, слова подбирать трудно. Здесь не надо: короткие шаги, по одному вопросу на экран. Начать можно так: «Новая запись» → «Эмоция».",
           tags: [["free", "Бесплатно"], ["", "До трёх эмоций"]],
           screen: app([
-            head("Шаг 1 из 6", "Что ты чувствуешь?"),
+            head("Шаг 1 из 5", "Что ты чувствуешь?"),
             `<div class="chips"><span class="on">Тревога</span><span>Радость</span><span class="on">Усталость</span><span>Злость</span><span>Нежность</span><span>Грусть</span></div>`,
             `<div class="drop" aria-hidden="true"></div>`,
           ]),
@@ -124,7 +124,7 @@
           p: "Отмечаешь, насколько это сильно и где отзывается в теле. Капля наверху смешивает цвета того, что ты чувствуешь, и растёт вместе с силой.",
           tags: [["", "Шаг про тело можно пропустить"]],
           screen: app([
-            head("Шаг 3 из 6", "Насколько сильно?"),
+            head("Шаг 3 из 5", "Насколько сильно?"),
             `<div class="scale"><span>1 · едва теплится</span><span>2 · есть, но тихо</span><span class="on">3 · ощутимо, занимает внимание</span><span>4 · трудно не замечать</span><span>5 · захватывает полностью</span></div>`,
           ]),
         },
@@ -314,6 +314,19 @@
     },
   ];
 
+  /* ── Живые экраны ──
+     Подсвеченная кнопка в телефоне нажимается: бот «печатает» и отвечает
+     следующим сообщением, как в настоящем чате. Ключ — «глава-номер
+     слайда» (с нуля); финал главы отвечает на «Старт». Чипы эмоций
+     переключаются. Так макет перестаёт быть картинкой. */
+  const DEMOS = {
+    "start-1": [bot("Что записать?"), kb(["💭 Мысль", "🎭 Эмоция", "🌙 Сон"], false)],
+    "mysl-0": [bot("Похоже, дело не в начальнике, а в том, что «не успеваю» так и осталось несказанным.<br><br><b>Что было бы, если сказать это завтра одной фразой?</b>")],
+    "son-0": [bot('<span class="ttl">🔮 Отклик на сон</span>Тайная комната — часть себя, которую ты ещё не обжила. Тишина там не пугает, а зовёт.<br><span class="mut">ключи · отклик · нити</span>')],
+    "den-0": [bot('Во сколько проснулась? <span class="mut">2/3</span>'), me("в 7:40")],
+    cta: [bot("Рад знакомству! Как тебя зовут?")],
+  };
+
   /* ── Состояние и DOM ── */
   const $ = (id) => document.getElementById(id);
   const stage = $("stage");
@@ -381,6 +394,7 @@
     stage.scrollTop = 0;
     const el = stage.firstElementChild;
     if (animate && !reduce) el.classList.add("enter");
+    wireScreen(el, s.cta ? DEMOS.cta : DEMOS[ch.id + "-" + si]);
 
     bars.innerHTML = ch.slides.map((_, i) => `<span class="${i < si ? "done" : i === si ? "now" : ""}"></span>`).join("");
     chips.querySelectorAll(".chip").forEach((c) => {
@@ -393,6 +407,47 @@
     const last = ci === CHAPTERS.length - 1 && si === total - 1;
     nextBtn.disabled = last;
     hint.textContent = s.cta ? "Глава пройдена" : si === 0 ? "Листай или нажми →" : `${ch.name} · ${si + 1} из ${total}`;
+  }
+
+  function wireScreen(slide, demo) {
+    const body = slide.querySelector(".body");
+    if (body && body.classList.contains("chat")) body.scrollTop = body.scrollHeight;
+    slide.querySelectorAll(".chips span").forEach((c) => {
+      c.setAttribute("role", "button");
+      c.addEventListener("click", () => c.classList.toggle("on"));
+    });
+    const hot = slide.querySelector(".kb .hot");
+    if (!hot || !demo || !body) return;
+    hot.classList.add("tap-me");
+    hot.setAttribute("role", "button");
+    hot.setAttribute("tabindex", "0");
+    let used = false;
+    const play = () => {
+      if (used) return;
+      used = true;
+      hot.classList.remove("tap-me");
+      const tipEl = slide.querySelector(".tap-tip");
+      if (tipEl) tipEl.remove();
+      hot.classList.add("pressed");
+      const typing = document.createElement("div");
+      typing.className = "msg bot typing";
+      typing.innerHTML = "<i></i><i></i><i></i>";
+      body.appendChild(typing);
+      body.scrollTop = body.scrollHeight;
+      setTimeout(() => {
+        typing.remove();
+        demo.forEach((html, i) => setTimeout(() => {
+          body.insertAdjacentHTML("beforeend", html);
+          const last = body.lastElementChild;
+          if (last && !reduce) last.classList.add("pop");
+          body.scrollTo({ top: body.scrollHeight, behavior: reduce ? "auto" : "smooth" });
+        }, i * 380));
+      }, reduce ? 0 : 750);
+    };
+    hot.addEventListener("click", play);
+    hot.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); play(); } });
+    const tip = slide.querySelector(".device");
+    if (tip) tip.insertAdjacentHTML("beforeend", '<span class="tap-tip">нажми на кнопку в телефоне</span>');
   }
 
   function go(dir) {

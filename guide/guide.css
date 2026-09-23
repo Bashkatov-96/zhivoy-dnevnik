@@ -25,6 +25,9 @@
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+/* Встроенный браузер Telegram (iOS и Android) съедает низ своей панелью:
+   высоту считаем по видимой части экрана (dvh), а не по 100vh. */
+@supports (height: 100dvh) { html, body { height: 100dvh; } }
 body {
   margin: 0;
   background: var(--bg);
@@ -315,9 +318,34 @@ button { font: inherit; color: inherit; }
 .tgbar.app { justify-content: space-between; }
 .tgbar.app > span:nth-child(2) { text-align: center; }
 .body { flex: 1; min-height: 0; padding: 12px 12px 18px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
-.body.chat { background:
+.body.chat { overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; background:
   radial-gradient(120% 60% at 100% 0%, color-mix(in srgb, var(--sa, var(--a)) 10%, transparent), transparent 60%),
-  #e9eef6; justify-content: flex-end; }
+  #e9eef6; justify-content: flex-start; }
+.body.chat::-webkit-scrollbar { display: none; }
+.body.chat > :first-child { margin-top: auto; }
+
+/* ── Живой экран: кнопку в телефоне можно нажать ── */
+.kb .hot { cursor: pointer; position: relative; transition: transform 0.15s var(--ease), opacity 0.3s var(--ease); }
+.kb .hot.tap-me::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 14px; border: 2px solid var(--sa, var(--a));
+  animation: tap-me 1.6s var(--ease) infinite; pointer-events: none;
+}
+@keyframes tap-me { 0% { opacity: 0.9; transform: scale(0.97); } 100% { opacity: 0; transform: scale(1.08); } }
+.kb .hot:active { transform: scale(0.96); }
+.kb .hot.pressed { opacity: 0.55; }
+.chips span[role="button"] { cursor: pointer; transition: background 0.2s var(--ease), color 0.2s var(--ease); }
+.msg.typing { display: inline-flex; gap: 4px; padding: 11px 13px; }
+.msg.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typing 1s ease-in-out infinite; }
+.msg.typing i:nth-child(2) { animation-delay: 0.15s; }
+.msg.typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typing { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+.pop { animation: pop 0.36s var(--ease) both; }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+.device { position: relative; }
+.tap-tip {
+  position: absolute; left: 50%; bottom: -12px; transform: translate(-50%, 100%); white-space: nowrap;
+  font-size: 11.5px; font-weight: 700; color: var(--a); letter-spacing: 0.02em;
+}
 
 /* чат */
 .msg { max-width: 86%; padding: 8px 11px 9px; border-radius: 16px; font-size: 12.8px; line-height: 1.45; box-shadow: 0 1px 1px rgba(31, 45, 61, 0.06); }
@@ -361,7 +389,8 @@ button { font: inherit; color: inherit; }
 .row .tx { flex: 1; min-width: 0; }
 .row .chev { color: var(--muted); }
 .drop {
-  width: 92px; height: 92px; margin: 4px auto 2px; border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+  width: 92px; height: 92px; margin: 4px auto 2px; border-radius: 58% 42% 55% 45% / 48% 55% 45% 52%;
+  animation: bloom 11s ease-in-out infinite;
   background: radial-gradient(circle at 34% 30%, #fff 0 6%, transparent 7%),
     conic-gradient(from 200deg, #f5b544, #3fbf7f, #7b8ff5, #f5b544);
   box-shadow: 0 14px 30px rgba(63, 191, 127, 0.28);
@@ -397,16 +426,23 @@ button { font: inherit; color: inherit; }
 .bars-mini s { display: block; height: 8px; border-radius: 6px; background: linear-gradient(90deg, var(--sa, var(--a)) var(--w), #e6ebf4 var(--w)); text-decoration: none; }
 
 /* ── Жест: rise ── */
-.slide.enter .copy > *, .slide.enter .device { animation: rise 0.62s var(--ease) both; }
-.slide.enter .device { animation-duration: 0.7s; }
-.slide.enter .copy > :nth-child(2) { animation-delay: 60ms; }
-.slide.enter .copy > :nth-child(3) { animation-delay: 120ms; }
-.slide.enter .copy > :nth-child(n + 4) { animation-delay: 180ms; }
-.slide.enter .body > * { animation: rise 0.5s var(--ease) both; }
-.slide.enter .body > :nth-child(1) { animation-delay: 180ms; }
-.slide.enter .body > :nth-child(2) { animation-delay: 240ms; }
-.slide.enter .body > :nth-child(3) { animation-delay: 300ms; }
-.slide.enter .body > :nth-child(n + 4) { animation-delay: 360ms; }
+/* Быстрее, чем было: во встроенном браузере Telegram долгий въезд
+   читался пустыми кадрами между слайдами. */
+.slide.enter .copy > *, .slide.enter .device { animation: rise 0.38s var(--ease) both; }
+.slide.enter .device { animation-duration: 0.42s; }
+.slide.enter .copy > :nth-child(2) { animation-delay: 40ms; }
+.slide.enter .copy > :nth-child(3) { animation-delay: 80ms; }
+.slide.enter .copy > :nth-child(n + 4) { animation-delay: 120ms; }
+.slide.enter .body > * { animation: rise 0.34s var(--ease) both; }
+.slide.enter .body > :nth-child(1) { animation-delay: 100ms; }
+.slide.enter .body > :nth-child(2) { animation-delay: 140ms; }
+.slide.enter .body > :nth-child(3) { animation-delay: 180ms; }
+.slide.enter .body > :nth-child(n + 4) { animation-delay: 220ms; }
+/* Акварель эмоции — как в приложении: край пятна медленно дышит. */
+@keyframes bloom {
+  0%, 100% { border-radius: 58% 42% 55% 45% / 48% 55% 45% 52%; }
+  50% { border-radius: 45% 55% 42% 58% / 55% 45% 55% 45%; }
+}
 @keyframes rise {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: none; }
@@ -431,7 +467,7 @@ button { font: inherit; color: inherit; }
     width: 100%;
     max-width: 440px;
     margin: 0 auto;
-    height: clamp(230px, 40dvh, 380px);
+    height: clamp(250px, 46dvh, 420px);
     aspect-ratio: auto;
     padding: 0;
     border-radius: 24px;
@@ -440,6 +476,8 @@ button { font: inherit; color: inherit; }
   }
   .screen { border-radius: 24px; border: 1px solid rgba(31, 45, 61, 0.06); }
   .island, .sbar { display: none; }
+  .tap-tip { top: 52px; bottom: auto; left: auto; right: 10px; transform: none; background: color-mix(in srgb, var(--bg) 88%, transparent); padding: 3px 9px; border-radius: 99px; z-index: 4; box-shadow: 0 4px 10px rgba(31, 45, 61, 0.1); }
+  .nav { padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
   .copy h1 { font-size: clamp(24px, 6.6vw, 30px); }
   .lead { font-size: 15px; }
   .nav { padding-block: 6px 10px; }
