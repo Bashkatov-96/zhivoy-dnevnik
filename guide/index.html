@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Инструкция Живого дневника</title>
+<meta name="description" content="Как пользоваться Живым дневником: первая запись, мысль, эмоция, сон, утро и вечер, личная карта, подписка.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Живой дневник">
+<meta property="og:title" content="Как пользоваться Живым дневником">
+<meta property="og:description" content="Инструкция с картинками: первая запись, мысль, эмоция, сон, утро и вечер, личная карта, подписка.">
+<meta property="og:url" content="https://bashkatov-96.github.io/zhivoy-dnevnik/guide/">
+<meta property="og:image" content="https://bashkatov-96.github.io/zhivoy-dnevnik/guide/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#EEF4FF">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Manrope:wght@400..800&display=swap">
+<link rel="stylesheet" href="guide.css">
+
+<!--
+  Инструкция-презентация: главы по функциям бота, по слайду на экран.
+  Ссылка на главу — якорь: /guide/#son, /guide/#emo …
+  Скрипт внешний: CSP сервера (bot/web/server.py) пускает только script-src 'self'.
+  Содержание слайдов — массив CHAPTERS в guide.js.
+-->
+
+<svg class="defs" aria-hidden="true" width="0" height="0">
+  <defs>
+    <radialGradient id="emblemG" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#fff7e9"/><stop offset="55%" stop-color="#ffe2c2"/><stop offset="100%" stop-color="#c9b6ff"/></radialGradient>
+    <radialGradient id="moonG" cx="32%" cy="28%" r="80%"><stop offset="0%" stop-color="#fff6e4"/><stop offset="50%" stop-color="#f7c46a"/><stop offset="100%" stop-color="#e08a2c"/></radialGradient>
+    <symbol id="emblem" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="url(#emblemG)"/><path d="M32 14 L38 30 L32 50 L26 30 Z" fill="#241a4e" opacity=".9"/><circle cx="32" cy="32" r="3.2" fill="#fff" opacity=".9"/></symbol>
+  </defs>
+</svg>
+
+<div class="deck" id="deck">
+  <header class="top">
+    <a class="brand" href="#start" aria-label="Живой дневник — к началу"><svg><use href="#emblem"/></svg><span>Живой дневник</span></a>
+    <nav class="chapters" id="chapters" aria-label="Главы инструкции"></nav>
+    <a class="cta-top" id="ctaTop" href="https://t.me/livebooks_bot?start=guide" target="_blank" rel="noopener">Открыть бота</a>
+  </header>
+
+  <div class="bars" id="bars" aria-hidden="true"></div>
+
+  <main class="stage" id="stage" aria-live="polite">
+    <noscript><p class="noscript">Включите JavaScript, чтобы листать инструкцию. Бот: t.me/livebooks_bot</p></noscript>
+  </main>
+
+  <footer class="nav">
+    <button class="nav-btn" id="prev" type="button" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <p class="nav-hint" id="hint">Листай вправо или нажми →</p>
+    <button class="nav-btn nav-next" id="next" type="button" aria-label="Дальше">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+  </footer>
+</div>
+
+<script src="guide.js"></script>
