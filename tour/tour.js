@@ -99,7 +99,8 @@
 
   // Эмоция: капля смешивает цвета выбранного, размер — сила
   const emoSec = $("#emo");
-  if (emoSec) {
+  // Экраны эмоции теперь настоящие снимки — нарисованной капли может не быть.
+  if (emoSec && $("[data-emo-chips]", emoSec)) {
     const scr = $(".scr", emoSec);
     const chips = $$("[data-emo-chips] .m-chip", emoSec);
     let picked = chips.filter((c) => c.classList.contains("sel"));
@@ -129,44 +130,8 @@
 
   /* ── Сценарии разделов ── */
   const HOOKS = {
-    emo(ctx) {
-      if (ctx.state !== 5) return;
-      const w = $("[data-fall]", ctx.sec);
-      w.classList.remove("fall");
-      void w.offsetWidth;
-      w.classList.add("fall");
-    },
-    thought(ctx) {
-      if (ctx.state !== 1) return;
-      const el = $("[data-seal-tick]", ctx.sec);
-      const lines = ["Читаю запись…", "Ищу, с чем перекликается…", "Подбираю заголовок…"];
-      let i = 0;
-      el.textContent = lines[0];
-      ctx.every(950, () => { i = Math.min(i + 1, lines.length - 1); el.textContent = lines[i]; });
-      ctx.later(3000, ctx.next);
-    },
     dreams(ctx) {
       if (ctx.state === 1) ctx.later(2400, ctx.next);
-    },
-    ach(ctx) {
-      const pop = $("[data-pop]", ctx.sec);
-      if (ctx.step === 0) { pop.classList.remove("on"); return; }
-      const badge = ctx.extra || $(ctx.step === 1 ? ".badge.earned" : ".badge.locked", ctx.sec);
-      const scr = $(".scr", ctx.sec);
-      const sr = scr.getBoundingClientRect();
-      const br = badge.getBoundingClientRect();
-      const card = $(".pop-card", pop);
-      card.style.setProperty("--ox", ((br.left + br.width / 2 - sr.left) / sr.width) * 100 + "%");
-      card.style.setProperty("--oy", ((br.top + br.height / 2 - sr.top) / sr.height) * 100 + "%");
-      const kind = ["earned", "progress", "locked"].find((k) => badge.classList.contains(k));
-      card.classList.remove("earned", "progress", "locked");
-      card.classList.add(kind);
-      card.style.setProperty("--p", badge.style.getPropertyValue("--p") || "0%");
-      $("[data-pop-title]", pop).textContent = badge.dataset.title;
-      $("[data-pop-sub]", pop).textContent = badge.dataset.sub;
-      pop.classList.remove("on");
-      void pop.offsetWidth;
-      pop.classList.add("on");
     },
   };
 
